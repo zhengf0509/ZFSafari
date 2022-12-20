@@ -6,10 +6,11 @@
 //
 
 import UIKit
+import WebKit
 
-class ViewController: UIViewController, UIWebViewDelegate, UIGestureRecognizerDelegate {
+class ViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, UIGestureRecognizerDelegate {
 
-    var webView:UIWebView?
+    var webView:WKWebView?
     var searchBar:UITextField?
     var isUp:Bool?
     var titleLabel:UILabel?
@@ -18,9 +19,9 @@ class ViewController: UIViewController, UIWebViewDelegate, UIGestureRecognizerDe
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        webView = UIWebView(frame: CGRect(x: 0, y: 64, width: self.view.frame.size.width, height: self.view.frame.size.height - 64))
+        webView = WKWebView(frame: CGRect(x: 0, y: 64, width: self.view.frame.size.width, height: self.view.frame.size.height - 64))
         webView?.scrollView.bounces = false
-        webView?.delegate = self
+        webView?.navigationDelegate = self
         isUp = false
         titleLabel = UILabel(frame: CGRect(x: 0, y: 0, width: self.view.frame.size.width - 40, height: 20))
         titleLabel?.backgroundColor = UIColor.clear
@@ -30,7 +31,7 @@ class ViewController: UIViewController, UIWebViewDelegate, UIGestureRecognizerDe
         // 默认加载百度
         let url = URL(string: "http://www.baidu.com")
         let request = URLRequest(url: url!);
-        webView?.loadRequest(request)
+        webView?.load(request)
         self.view.addSubview(webView!)
         
         // 设置导航栏
@@ -100,7 +101,7 @@ class ViewController: UIViewController, UIWebViewDelegate, UIGestureRecognizerDe
         }
         
         let request = URLRequest(url: url!)
-        webView?.loadRequest(request)
+        webView?.load(request)
     }
     
     @objc func upSwipeFunc() {
@@ -155,7 +156,7 @@ class ViewController: UIViewController, UIWebViewDelegate, UIGestureRecognizerDe
             if (array == nil) {
                 array = Array<String>()
             }
-            array?.append(self.webView!.request!.url!.absoluteString)
+            array?.append(self.webView!.url!.absoluteString)
             UserDefaults.standard.set(array!, forKey: "Like")
             UserDefaults.standard.synchronize()
         }
@@ -192,14 +193,10 @@ class ViewController: UIViewController, UIWebViewDelegate, UIGestureRecognizerDe
         return false
     }
     
-    // MARK: - UIWebViewDelegate
-    func webViewDidFinishLoad(_ webView: UIWebView) {
-        // TODO: 会回调两次
-        if (webView.isLoading) {
-            return
-        }
-
-        titleLabel?.text = webView.request?.url?.absoluteString
+    // MARK: - WKNavigationDelegate
+    
+    func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
+        titleLabel?.text = webView.url?.absoluteString
         var array:Array<String>? = UserDefaults.standard.value(forKey: "History") as! Array<String>?
         if (array == nil) {
             array = Array<String>()
@@ -211,7 +208,7 @@ class ViewController: UIViewController, UIWebViewDelegate, UIGestureRecognizerDe
     
     // MARK: - helper
     open func loadURL(urlString:String) {
-        webView?.loadRequest(URLRequest(url: URL(string: urlString)!))
+        webView?.load(URLRequest(url: URL(string: urlString)!))
     }
 }
 
